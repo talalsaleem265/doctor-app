@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # doctorapp
 
 A new Flutter project.
