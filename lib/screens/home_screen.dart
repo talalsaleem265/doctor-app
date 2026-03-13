@@ -12,11 +12,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
   List<Patient> patients = [];
+  List<Patient> filteredPatients = [];
+
+  TextEditingController searchController = TextEditingController();
 
   void loadPatients() async {
     final data = await DatabaseHelper.instance.getPatients();
     setState(() {
       patients = data;
+      filteredPatients = data;
     });
   }
 
@@ -26,9 +30,41 @@ class _HomeScreenState extends State<HomeScreen> {
     loadPatients();
   }
 
+  void searchPatient(String query) {
+    final result = patients.where((p) {
+      return p.name.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      filteredPatients = result;
+    });
+  }
+
   void deletePatient(int id) async {
-    await DatabaseHelper.instance.deletePatient(id);
-    loadPatients();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Delete Patient"),
+        content: Text("Are you sure you want to delete this patient?"),
+        actions: [
+
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
+          ),
+
+          TextButton(
+            onPressed: () async {
+              await DatabaseHelper.instance.deletePatient(id);
+              Navigator.pop(context);
+              loadPatients();
+            },
+            child: Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -40,57 +76,109 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
       ),
 
-      body: ListView.builder(
-        itemCount: patients.length,
-        itemBuilder: (context, index) {
+      body: Padding(
+        padding: EdgeInsets.all(10),
 
-          final patient = patients[index];
+        child: Column(
+          children: [
 
-          return Card(
-            margin: EdgeInsets.all(10),
-
-            child: ListTile(
-              leading: CircleAvatar(
-                child: Icon(Icons.person),
+            // Patient Count
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.teal.shade100,
+                borderRadius: BorderRadius.circular(10),
               ),
-
-              title: Text(patient.name),
-
-              subtitle: Text(
-                "Age: ${patient.age} | Disease: ${patient.disease}",
-              ),
-
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-
-                  IconButton(
-                    icon: Icon(Icons.edit, color: Colors.orange),
-                    onPressed: () async {
-
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => EditPatientScreen(patient: patient),
-                        ),
-                      );
-
-                      loadPatients();
-                    },
-                  ),
-
-                  IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      deletePatient(patient.id!);
-                    },
-                  ),
-
+                  Icon(Icons.people),
+                  SizedBox(width: 10),
+                  Text(
+                    "Total Patients: ${patients.length}",
+                    style: TextStyle(fontSize: 18),
+                  )
                 ],
               ),
             ),
-          );
-        },
+
+            SizedBox(height: 10),
+
+            // Search Box
+            TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: "Search Patient",
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: searchPatient,
+            ),
+
+            SizedBox(height: 10),
+
+            Expanded(
+              child: ListView.builder(
+                itemCount: filteredPatients.length,
+                itemBuilder: (context, index) {
+
+                  final patient = filteredPatients[index];
+
+                  return Card(
+                    elevation: 4,
+                    margin: EdgeInsets.symmetric(vertical: 6),
+
+                    child: ListTile(
+
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.teal,
+                        child: Icon(Icons.person, color: Colors.white),
+                      ),
+
+                      title: Text(
+                        patient.name,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+
+                      subtitle: Text(
+                        "Age: ${patient.age} | Disease: ${patient.disease}",
+                      ),
+
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.orange),
+                            onPressed: () async {
+
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditPatientScreen(patient: patient),
+                                ),
+                              );
+
+                              loadPatients();
+                            },
+                          ),
+
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              deletePatient(patient.id!);
+                            },
+                          ),
+
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
 
       floatingActionButton: FloatingActionButton(
