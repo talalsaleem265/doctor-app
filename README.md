@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # doctorapp
 
 A new Flutter project.
@@ -15,3 +16,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# doctor-app
+A Doctor App is a mobile application designed to connect patients with doctors and make healthcare services easier and faster. Through this app, patients can find doctors, book appointments, and get medical advice without visiting the hospital physically.
+>>>>>>> 01528b9b6a8dd0185985ea249289f590ab5dd15a
